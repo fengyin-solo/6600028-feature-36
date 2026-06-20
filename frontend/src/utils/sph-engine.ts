@@ -78,8 +78,8 @@ export class SPHEngine {
   params: SimParams
   width: number
   height: number
-  private grid: Map<number, number[]> = new Map()
-  private cellSize: number = 0
+  grid: Map<number, number[]> = new Map()
+  cellSize: number = 0
 
   constructor(count: number, width: number, height: number, params?: Partial<SimParams>) {
     this.width = width
@@ -89,7 +89,7 @@ export class SPHEngine {
   }
 
   initParticles(config: 'dam' | 'drop' | 'fountain' | 'wave', count?: number) {
-    const n = count ?? this.particles.length || 800
+    const n = count ?? (this.particles.length || 800)
     this.particles = []
 
     switch (config) {
@@ -323,6 +323,27 @@ export class SPHEngine {
         p.vx += (dx / dist) * factor
         p.vy += (dy / dist) * factor
       }
+    }
+  }
+
+  getStats() {
+    const margin = 10
+    let boundaryCount = 0
+    let restingCount = 0
+    let activeCount = 0
+    for (const p of this.particles) {
+      if (p.x <= margin || p.x >= this.width - margin || p.y <= margin || p.y >= this.height - margin) {
+        boundaryCount++
+      }
+      const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy)
+      if (speed < 1.0) restingCount++
+      if (speed > 10.0) activeCount++
+    }
+    return {
+      gridCellCount: this.grid.size,
+      boundaryParticleCount: boundaryCount,
+      restingParticleCount: restingCount,
+      activeParticleCount: activeCount,
     }
   }
 }
